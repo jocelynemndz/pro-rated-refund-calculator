@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Rated Refund Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .calculator {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 32px;
+            width: 100%;
+            max-width: 440px;
+        }
+        
+        .logo {
+            display: block;
+            height: 36px;
+            margin: 0 auto 24px auto;
+        }
+        
+        h1 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        
+        .field {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #1072b9;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* Email lookup section */
+        .email-section {
+            margin-bottom: 20px;
+        }
+        
+        .email-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .email-row input {
+            flex: 1;
+        }
+        
+        .btn-primary {
+            padding: 10px 20px;
+            background: #1072b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        
+        .btn-primary:hover {
+            background: #0d5a94;
+        }
+        
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Completed email state */
+        .email-complete {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .email-complete.visible {
+            display: flex;
+        }
+        
+        .email-complete-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .email-complete-text .checkmark {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .btn-text {
+            background: none;
+            border: none;
+            color: #1072b9;
+            font-size: 13px;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .btn-text:hover {
+            text-decoration: underline;
+        }
+        
+        /* Stripe summary card */
+        .stripe-summary {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stripe-summary.visible {
+            display: block;
+        }
+        
+        .stripe-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .stripe-summary-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .plan-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1072b9;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        
+        .stripe-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-item-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        
+        .summary-item-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* Edit mode for stripe fields */
+        .stripe-edit {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stripe-edit.visible {
+            display: block;
+        }
+        
+        .stripe-edit .field {
+            margin-bottom: 12px;
+        }
+        
+        .stripe-edit .field:last-of-type {
+            margin-bottom: 0;
+        }
+        
+        .stripe-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            background: white;
+            color: #333;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        /* Org join section */
+        .org-section {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .org-section.visible {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        
+        .toggle-container {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 6px;
+            padding: 3px;
+            margin-bottom: 12px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            color: #666;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn.active {
+            background: white;
+            color: #1072b9;
+        }
+        
+        .date-input-group {
+            display: none;
+        }
+        
+        .date-input-group.active {
+            display: block;
+        }
+        
+        .helper-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+        
+        /* Result section */
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .result-section.ready {
+            background: #1072b9;
+        }
+        
+        .result-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .result-section.ready .result-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .result-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .result-section.ready .result-value {
+            color: white;
+        }
+        
+        .result-details {
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+        }
+        
+        .result-section.ready .result-details {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .copy-btn {
+            margin-top: 14px;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+        
+        .result-section.ready .copy-btn {
+            display: inline-block;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Error message */
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+        
+        .error-message.visible {
+            display: block;
+        }
+        
+        /* Info notice */
+        .info-notice {
+            background: #fef9e7;
+            color: #92690d;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .info-notice.visible {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .info-notice-icon {
+            flex-shrink: 0;
+        }
+        
+        /* Loading state */
+        .loading-text {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <img src="https://assets.cdn.biorender.com/assets/biorender-logo-blue.svg" alt="BioRender" class="logo">
+        <h1>Pro-Rated Refund Calculator</h1>
+        <p class="subtitle">Calculate refunds for users joining org licenses</p>
+        
+        <!-- Step 1: Email lookup -->
+        <div class="email-section" id="emailSection">
+            <div class="field">
+                <label for="email">Customer Email</label>
+                <div class="email-row">
+                    <input type="email" id="email" placeholder="customer@example.com">
+                    <button class="btn-primary" id="lookupBtn" onclick="lookupCustomer()">Look up</button>
+                </div>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+        
+        <!-- Email complete state -->
+        <div class="email-complete" id="emailComplete">
+            <div class="email-complete-text">
+                <span class="checkmark">✓</span>
+                <span id="emailDisplay"></span>
+            </div>
+            <button class="btn-text" onclick="resetLookup()">Change</button>
+        </div>
+        
+        <!-- Stripe summary (read-only view) -->
+        <div class="stripe-summary" id="stripeSummary">
+            <div class="stripe-summary-header">
+                <span class="stripe-summary-title">Subscription Details</span>
+                <button class="btn-text" onclick="showEditMode()">Edit</button>
+            </div>
+            <div class="plan-badge" id="planName"></div>
+            <div class="stripe-summary-grid">
+                <div class="summary-item">
+                    <div class="summary-item-label">Cost</div>
+                    <div class="summary-item-value" id="costDisplay">$0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-item-label">Plan Length</div>
+                    <div class="summary-item-value" id="daysDisplay">0 days</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-item-label">Ends</div>
+                    <div class="summary-item-value" id="endDateDisplay">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stripe edit mode -->
+        <div class="stripe-edit" id="stripeEdit">
+            <div class="field">
+                <label for="cost">Cost of Plan (without tax)</label>
+                <input type="number" id="cost" step="0.01" min="0">
+            </div>
+            <div class="field">
+                <label for="planDays">Number of Days in Plan</label>
+                <input type="number" id="planDays" min="1">
+                <div class="helper-text">Monthly = 30, Annual = 365</div>
+            </div>
+            <div class="field">
+                <label for="endDate">Subscription End Date</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="stripe-edit-actions">
+                <button class="btn-secondary" onclick="cancelEdit()">Cancel</button>
+                <button class="btn-primary btn-small" onclick="saveEdit()">Save</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Org join date -->
+        <div class="org-section" id="orgSection">
+            <div class="section-title">When did they join the org?</div>
+            
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="toggleDate" onclick="setInputMode('date')">Specific Date</button>
+                <button class="toggle-btn" id="toggleDays" onclick="setInputMode('days')">Days Since Joining</button>
+            </div>
+            
+            <div class="date-input-group active" id="dateInputGroup">
+                <div class="field">
+                    <input type="date" id="joinDate">
+                    <div class="helper-text">From the CSM or Retool</div>
+                </div>
+            </div>
+            
+            <div class="date-input-group" id="daysInputGroup">
+                <div class="field">
+                    <input type="number" id="daysSinceJoining" placeholder="e.g. 45" min="0">
+                    <div class="helper-text">From Retool membership page</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Short plan notice -->
+        <div class="info-notice" id="shortPlanNotice">
+            <span class="info-notice-icon">ℹ️</span>
+            <span>Monthly and 4-month plans are usually not eligible for pro-rated refunds.</span>
+        </div>
+        
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <div class="result-label">Total Refund</div>
+            <div class="result-value" id="result">$0.00</div>
+            <div class="result-details" id="details">Enter email to start</div>
+            <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copy Amount</button>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPK1VREiVvM-VulrMKYrILgSEH-KmSPAUB_Wa17GKYErnoUvnMvGU03uODGcj2m-U3Jg/exec';
+        
+        // ============================================
+        // STATE
+        // ============================================
+        let currentRefund = 0;
+        let inputMode = 'date';
+        let stripeData = {
+            cost: 0,
+            days: 0,
+            endDate: ''
+        };
+        
+        // ============================================
+        // ELEMENTS
+        // ============================================
+        const emailInput = document.getElementById('email');
+        const emailSection = document.getElementById('emailSection');
+        const emailComplete = document.getElementById('emailComplete');
+        const emailDisplay = document.getElementById('emailDisplay');
+        const stripeSummary = document.getElementById('stripeSummary');
+        const stripeEdit = document.getElementById('stripeEdit');
+        const orgSection = document.getElementById('orgSection');
+        const resultSection = document.getElementById('resultSection');
+        const costInput = document.getElementById('cost');
+        const planDaysInput = document.getElementById('planDays');
+        const endDateInput = document.getElementById('endDate');
+        const joinDateInput = document.getElementById('joinDate');
+        const daysSinceJoiningInput = document.getElementById('daysSinceJoining');
+        const resultDisplay = document.getElementById('result');
+        const detailsDisplay = document.getElementById('details');
+        const lookupBtn = document.getElementById('lookupBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // ============================================
+        // STRIPE LOOKUP
+        // ============================================
+        async function lookupCustomer() {
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showError('Please enter an email address');
+                return;
+            }
+            
+            lookupBtn.disabled = true;
+            lookupBtn.textContent = 'Looking up...';
+            hideError();
+            
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    lookupBtn.disabled = false;
+                    lookupBtn.textContent = 'Look up';
+                    return;
+                }
+                
+                if (data.success) {
+                    // Store the data
+                    stripeData.cost = data.planAmount;
+                    stripeData.days = data.daysInPlan;
+                    stripeData.endDate = data.endDate;
+                    
+                    // Update hidden inputs
+                    costInput.value = data.planAmount.toFixed(2);
+                    planDaysInput.value = data.daysInPlan;
+                    endDateInput.value = data.endDate;
+                    
+                    // Update display
+                    document.getElementById('planName').textContent = data.productName;
+                    document.getElementById('costDisplay').textContent = '$' + data.planAmount.toFixed(2);
+                    document.getElementById('daysDisplay').textContent = data.daysInPlan + ' days';
+                    document.getElementById('endDateDisplay').textContent = formatDate(data.endDate);
+                    emailDisplay.textContent = email;
+                    
+                    // Show next steps
+                    emailSection.style.display = 'none';
+                    emailComplete.classList.add('visible');
+                    stripeSummary.classList.add('visible');
+                    orgSection.classList.add('visible');
+                    
+                    detailsDisplay.textContent = 'Enter org join date';
+                }
+            } catch (error) {
+                showError('Failed to connect. Please try again.');
+                console.error(error);
+            } finally {
+                lookupBtn.disabled = false;
+                lookupBtn.textContent = 'Look up';
+            }
+        }
+        
+        function formatDate(dateStr) {
+            // Parse date parts directly to avoid timezone issues
+            const [year, month, day] = dateStr.split('-');
+            const date = new Date(year, month - 1, day); // month is 0-indexed
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        function parseLocalDate(dateStr) {
+            // Parse as local date, not UTC
+            const [year, month, day] = dateStr.split('-');
+            return new Date(year, month - 1, day);
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('visible');
+        }
+        
+        function hideError() {
+            errorMessage.classList.remove('visible');
+        }
+        
+        function resetLookup() {
+            emailSection.style.display = 'block';
+            emailComplete.classList.remove('visible');
+            stripeSummary.classList.remove('visible');
+            stripeEdit.classList.remove('visible');
+            orgSection.classList.remove('visible');
+            resultSection.classList.remove('ready');
+            document.getElementById('shortPlanNotice').classList.remove('visible');
+            
+            resultDisplay.textContent = '$0.00';
+            detailsDisplay.textContent = 'Enter email to start';
+            currentRefund = 0;
+        }
+        
+        // ============================================
+        // EDIT MODE
+        // ============================================
+        function showEditMode() {
+            stripeSummary.classList.remove('visible');
+            stripeEdit.classList.add('visible');
+        }
+        
+        function cancelEdit() {
+            // Restore original values
+            costInput.value = stripeData.cost.toFixed(2);
+            planDaysInput.value = stripeData.days;
+            endDateInput.value = stripeData.endDate;
+            
+            stripeEdit.classList.remove('visible');
+            stripeSummary.classList.add('visible');
+        }
+        
+        function saveEdit() {
+            // Update stored data
+            stripeData.cost = parseFloat(costInput.value) || 0;
+            stripeData.days = parseInt(planDaysInput.value) || 0;
+            stripeData.endDate = endDateInput.value;
+            
+            // Update display
+            document.getElementById('costDisplay').textContent = '$' + stripeData.cost.toFixed(2);
+            document.getElementById('daysDisplay').textContent = stripeData.days + ' days';
+            document.getElementById('endDateDisplay').textContent = formatDate(stripeData.endDate);
+            
+            stripeEdit.classList.remove('visible');
+            stripeSummary.classList.add('visible');
+            
+            calculateRefund();
+        }
+        
+        // ============================================
+        // INPUT MODE TOGGLE
+        // ============================================
+        function setInputMode(mode) {
+            inputMode = mode;
+            
+            document.getElementById('toggleDate').classList.toggle('active', mode === 'date');
+            document.getElementById('toggleDays').classList.toggle('active', mode === 'days');
+            document.getElementById('dateInputGroup').classList.toggle('active', mode === 'date');
+            document.getElementById('daysInputGroup').classList.toggle('active', mode === 'days');
+            
+            calculateRefund();
+        }
+        
+        // ============================================
+        // CALCULATION
+        // ============================================
+        function calculateRefund() {
+            const cost = stripeData.cost;
+            const planDays = stripeData.days;
+            const endDateValue = stripeData.endDate;
+            
+            if (cost <= 0 || planDays <= 0 || !endDateValue) {
+                resultSection.classList.remove('ready');
+                resultDisplay.textContent = '$0.00';
+                detailsDisplay.textContent = 'Missing subscription data';
+                currentRefund = 0;
+                document.getElementById('shortPlanNotice').classList.remove('visible');
+                return;
+            }
+            
+            const endDate = parseLocalDate(endDateValue);
+            let daysBetween;
+            
+            if (inputMode === 'date') {
+                const joinDateValue = joinDateInput.value;
+                if (!joinDateValue) {
+                    resultSection.classList.remove('ready');
+                    resultDisplay.textContent = '$0.00';
+                    detailsDisplay.textContent = 'Enter org join date';
+                    currentRefund = 0;
+                    document.getElementById('shortPlanNotice').classList.remove('visible');
+                    return;
+                }
+                const joinDate = parseLocalDate(joinDateValue);
+                const timeDiff = endDate - joinDate;
+                daysBetween = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            } else {
+                const daysSinceJoining = parseInt(daysSinceJoiningInput.value);
+                if (isNaN(daysSinceJoining) || daysSinceJoining < 0) {
+                    resultSection.classList.remove('ready');
+                    resultDisplay.textContent = '$0.00';
+                    detailsDisplay.textContent = 'Enter days since joining';
+                    currentRefund = 0;
+                    document.getElementById('shortPlanNotice').classList.remove('visible');
+                    return;
+                }
+                
+                const today = new Date();
+                const joinDate = new Date(today);
+                joinDate.setDate(today.getDate() - daysSinceJoining);
+                
+                const timeDiff = endDate - joinDate;
+                daysBetween = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            }
+            
+            if (daysBetween < 0) {
+                resultSection.classList.remove('ready');
+                resultDisplay.textContent = '$0.00';
+                detailsDisplay.textContent = 'Join date must be before end date';
+                currentRefund = 0;
+                document.getElementById('shortPlanNotice').classList.remove('visible');
+                return;
+            }
+            
+            const dailyRate = cost / planDays;
+            const refund = dailyRate * daysBetween;
+            const roundedRefund = Math.round(refund * 100) / 100;
+            
+            currentRefund = roundedRefund;
+            resultSection.classList.add('ready');
+            resultDisplay.textContent = '$' + roundedRefund.toFixed(2);
+            detailsDisplay.textContent = `$${dailyRate.toFixed(4)}/day × ${daysBetween} days`;
+            
+            // Show notice for non-annual plans
+            const shortPlanNotice = document.getElementById('shortPlanNotice');
+            if (planDays < 365) {
+                shortPlanNotice.classList.add('visible');
+            } else {
+                shortPlanNotice.classList.remove('visible');
+            }
+        }
+        
+        // ============================================
+        // COPY RESULT
+        // ============================================
+        function copyResult() {
+            const copyBtn = document.getElementById('copyBtn');
+            navigator.clipboard.writeText(currentRefund.toFixed(2)).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Amount';
+                }, 2000);
+            });
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        joinDateInput.addEventListener('input', calculateRefund);
+        daysSinceJoiningInput.addEventListener('input', calculateRefund);
+        
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') lookupCustomer();
+        });
+    </script>
+</body>
+</html>
