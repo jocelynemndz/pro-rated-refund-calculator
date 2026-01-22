@@ -345,6 +345,11 @@
             border-radius: 6px;
             padding: 20px;
             text-align: center;
+            display: none;
+        }
+        
+        .result-section.visible {
+            display: block;
         }
         
         .result-section.ready {
@@ -404,6 +409,25 @@
         
         .copy-btn:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .reset-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: white;
+            color: #666;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .reset-btn:hover {
+            background: #f5f5f5;
         }
         
         /* Error message */
@@ -557,6 +581,9 @@
             <div class="result-details" id="details">Enter email to start</div>
             <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copy Amount</button>
         </div>
+        
+        <!-- Reset button -->
+        <button class="reset-btn" id="resetBtn" onclick="resetCalculator()" style="display: none;">Calculate Another</button>
     </div>
     
     <script>
@@ -681,17 +708,37 @@
         }
         
         function resetLookup() {
+            resetCalculator();
+        }
+        
+        function resetCalculator() {
+            // Reset state
+            currentRefund = 0;
+            stripeData = { cost: 0, days: 0, endDate: '' };
+            
+            // Reset inputs
+            emailInput.value = '';
+            costInput.value = '';
+            planDaysInput.value = '';
+            endDateInput.value = '';
+            joinDateInput.value = '';
+            daysSinceJoiningInput.value = '';
+            
+            // Reset UI visibility
             emailSection.style.display = 'block';
             emailComplete.classList.remove('visible');
             stripeSummary.classList.remove('visible');
             stripeEdit.classList.remove('visible');
             orgSection.classList.remove('visible');
+            resultSection.classList.remove('visible');
             resultSection.classList.remove('ready');
             document.getElementById('shortPlanNotice').classList.remove('visible');
+            document.getElementById('resetBtn').style.display = 'none';
             
+            // Reset displays
             resultDisplay.textContent = '$0.00';
             detailsDisplay.textContent = 'Enter email to start';
-            currentRefund = 0;
+            document.getElementById('planName').textContent = '';
         }
         
         // ============================================
@@ -752,11 +799,13 @@
             const endDateValue = stripeData.endDate;
             
             if (cost <= 0 || planDays <= 0 || !endDateValue) {
+                resultSection.classList.remove('visible');
                 resultSection.classList.remove('ready');
                 resultDisplay.textContent = '$0.00';
                 detailsDisplay.textContent = 'Missing subscription data';
                 currentRefund = 0;
                 document.getElementById('shortPlanNotice').classList.remove('visible');
+                document.getElementById('resetBtn').style.display = 'none';
                 return;
             }
             
@@ -766,11 +815,13 @@
             if (inputMode === 'date') {
                 const joinDateValue = joinDateInput.value;
                 if (!joinDateValue) {
+                    resultSection.classList.remove('visible');
                     resultSection.classList.remove('ready');
                     resultDisplay.textContent = '$0.00';
                     detailsDisplay.textContent = 'Enter org join date';
                     currentRefund = 0;
                     document.getElementById('shortPlanNotice').classList.remove('visible');
+                    document.getElementById('resetBtn').style.display = 'none';
                     return;
                 }
                 const joinDate = parseLocalDate(joinDateValue);
@@ -779,11 +830,13 @@
             } else {
                 const daysSinceJoining = parseInt(daysSinceJoiningInput.value);
                 if (isNaN(daysSinceJoining) || daysSinceJoining < 0) {
+                    resultSection.classList.remove('visible');
                     resultSection.classList.remove('ready');
                     resultDisplay.textContent = '$0.00';
                     detailsDisplay.textContent = 'Enter days since joining';
                     currentRefund = 0;
                     document.getElementById('shortPlanNotice').classList.remove('visible');
+                    document.getElementById('resetBtn').style.display = 'none';
                     return;
                 }
                 
@@ -796,11 +849,13 @@
             }
             
             if (daysBetween < 0) {
+                resultSection.classList.remove('visible');
                 resultSection.classList.remove('ready');
                 resultDisplay.textContent = '$0.00';
                 detailsDisplay.textContent = 'Join date must be before end date';
                 currentRefund = 0;
                 document.getElementById('shortPlanNotice').classList.remove('visible');
+                document.getElementById('resetBtn').style.display = 'none';
                 return;
             }
             
@@ -809,9 +864,13 @@
             const roundedRefund = Math.round(refund * 100) / 100;
             
             currentRefund = roundedRefund;
+            resultSection.classList.add('visible');
             resultSection.classList.add('ready');
             resultDisplay.textContent = '$' + roundedRefund.toFixed(2);
             detailsDisplay.textContent = `$${dailyRate.toFixed(4)}/day × ${daysBetween} days`;
+            
+            // Show reset button
+            document.getElementById('resetBtn').style.display = 'block';
             
             // Show notice for non-annual plans
             const shortPlanNotice = document.getElementById('shortPlanNotice');
