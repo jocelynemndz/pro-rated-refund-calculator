@@ -430,6 +430,65 @@
             background: #f5f5f5;
         }
         
+        /* Next Steps section */
+        .next-steps {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+        
+        .next-steps.visible {
+            display: block;
+        }
+        
+        .next-steps-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        
+        .next-steps-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #1072b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #0d5a94;
+        }
+        
+        .action-btn-secondary {
+            background: white;
+            color: #1072b9;
+            border: 1px solid #1072b9;
+        }
+        
+        .action-btn-secondary:hover {
+            background: #f0f7ff;
+        }
+        
         /* Error message */
         .error-message {
             background: #fef2f2;
@@ -452,6 +511,7 @@
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
+            font-family: 'Roboto', sans-serif;
             margin-bottom: 16px;
             display: none;
         }
@@ -466,6 +526,70 @@
             flex-shrink: 0;
         }
         
+        /* Payment warning */
+        .payment-warning {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Roboto', sans-serif;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .payment-warning.visible {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .payment-warning-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: center;
+        }
+        
+        .payment-warning-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .payment-warning-icon {
+            flex-shrink: 0;
+        }
+        
+        .payment-warning-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            text-decoration: none;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .payment-warning-link:hover {
+            background: #f5f5f5;
+        }
+        
+        .payment-warning-btn-primary {
+            background: #1072b9;
+            color: white;
+            border: 1px solid #1072b9;
+        }
+        
+        .payment-warning-btn-primary:hover {
+            background: #0d5a94;
+        }
+        
         /* Loading state */
         .loading-text {
             color: #888;
@@ -477,7 +601,7 @@
     <div class="calculator">
         <img src="https://assets.cdn.biorender.com/assets/biorender-logo-blue.svg" alt="BioRender" class="logo">
         <h1>Pro-Rated Refund Calculator</h1>
-        <p class="subtitle">Calculate refunds for users joining org licenses</p>
+        <p class="subtitle">Calculate refunds for users joining Full-Serve licenses</p>
         
         <!-- Step 1: Email lookup -->
         <div class="email-section" id="emailSection">
@@ -523,6 +647,22 @@
             </div>
         </div>
         
+        <!-- Payment warning -->
+        <div class="payment-warning" id="paymentWarning">
+            <div class="payment-warning-content">
+                <span class="payment-warning-icon">⚠️</span>
+                <span id="paymentWarningText">Payment issue detected</span>
+            </div>
+            <div class="payment-warning-buttons">
+                <a class="payment-warning-link" id="paymentWarningStripeLink" href="#" target="_blank">
+                    View in Stripe
+                </a>
+                <button class="payment-warning-link payment-warning-btn-primary" id="calculateAnywayBtn" onclick="showOrgSection()" style="border: none; cursor: pointer;">
+                    Calculate Anyway
+                </button>
+            </div>
+        </div>
+        
         <!-- Stripe edit mode -->
         <div class="stripe-edit" id="stripeEdit">
             <div class="field">
@@ -549,18 +689,18 @@
             <div class="section-title">When did they join the org?</div>
             
             <div class="toggle-container">
-                <button class="toggle-btn active" id="toggleDate" onclick="setInputMode('date')">Specific Date</button>
-                <button class="toggle-btn" id="toggleDays" onclick="setInputMode('days')">Days Since Joining</button>
+                <button class="toggle-btn active" id="toggleDays" onclick="setInputMode('days')">Days Since Joining</button>
+                <button class="toggle-btn" id="toggleDate" onclick="setInputMode('date')">Specific Date</button>
             </div>
             
-            <div class="date-input-group active" id="dateInputGroup">
+            <div class="date-input-group" id="dateInputGroup">
                 <div class="field">
                     <input type="date" id="joinDate">
                     <div class="helper-text">From the CSM or Retool</div>
                 </div>
             </div>
             
-            <div class="date-input-group" id="daysInputGroup">
+            <div class="date-input-group active" id="daysInputGroup">
                 <div class="field">
                     <input type="number" id="daysSinceJoining" placeholder="e.g. 45" min="0">
                     <div class="helper-text">From Retool membership page</div>
@@ -582,6 +722,19 @@
             <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copy Amount</button>
         </div>
         
+        <!-- Next Steps -->
+        <div class="next-steps" id="nextSteps">
+            <div class="next-steps-title">Next Steps</div>
+            <div class="next-steps-buttons">
+                <a class="action-btn" id="processRefundBtn" href="#" target="_blank">
+                    Process Refund in Retool
+                </a>
+                <a class="action-btn action-btn-secondary" id="stripeProfileBtn" href="#" target="_blank">
+                    View Customer in Stripe
+                </a>
+            </div>
+        </div>
+        
         <!-- Reset button -->
         <button class="reset-btn" id="resetBtn" onclick="resetCalculator()" style="display: none;">Calculate Another</button>
     </div>
@@ -596,11 +749,14 @@
         // STATE
         // ============================================
         let currentRefund = 0;
-        let inputMode = 'date';
+        let inputMode = 'days';
         let stripeData = {
             cost: 0,
             days: 0,
-            endDate: ''
+            endDate: '',
+            endTimestamp: null,
+            customerId: null,
+            subscriptionId: null
         };
         
         // ============================================
@@ -655,6 +811,9 @@
                     stripeData.cost = data.planAmount;
                     stripeData.days = data.daysInPlan;
                     stripeData.endDate = data.endDate;
+                    stripeData.endTimestamp = data.endTimestamp;
+                    stripeData.customerId = data.customerId;
+                    stripeData.subscriptionId = data.subscriptionId;
                     
                     // Update hidden inputs
                     costInput.value = data.planAmount.toFixed(2);
@@ -664,15 +823,26 @@
                     // Update display
                     document.getElementById('planName').textContent = data.productName;
                     document.getElementById('costDisplay').textContent = '$' + data.planAmount.toFixed(2);
-                    document.getElementById('daysDisplay').textContent = data.daysInPlan + ' days';
+                    document.getElementById('daysDisplay').textContent = Math.round(data.daysInPlan) + ' days';
                     document.getElementById('endDateDisplay').textContent = formatDate(data.endDate);
                     emailDisplay.textContent = email;
+                    
+                    // Show payment warning if there's an issue
+                    const paymentWarning = document.getElementById('paymentWarning');
+                    if (data.paymentIssue) {
+                        document.getElementById('paymentWarningText').textContent = data.paymentIssue + ' - there may be nothing to refund';
+                        document.getElementById('paymentWarningStripeLink').href = `https://dashboard.stripe.com/acct_1B9ZrXLHw1e2oXNB/customers/${data.customerId}`;
+                        paymentWarning.classList.add('visible');
+                        // Don't show org section yet - let them investigate first
+                    } else {
+                        paymentWarning.classList.remove('visible');
+                        orgSection.classList.add('visible');
+                    }
                     
                     // Show next steps
                     emailSection.style.display = 'none';
                     emailComplete.classList.add('visible');
                     stripeSummary.classList.add('visible');
-                    orgSection.classList.add('visible');
                     
                     detailsDisplay.textContent = 'Enter org join date';
                 }
@@ -707,6 +877,10 @@
             errorMessage.classList.remove('visible');
         }
         
+        function showOrgSection() {
+            orgSection.classList.add('visible');
+        }
+        
         function resetLookup() {
             resetCalculator();
         }
@@ -714,7 +888,7 @@
         function resetCalculator() {
             // Reset state
             currentRefund = 0;
-            stripeData = { cost: 0, days: 0, endDate: '' };
+            stripeData = { cost: 0, days: 0, endDate: '', endTimestamp: null, customerId: null, subscriptionId: null };
             
             // Reset inputs
             emailInput.value = '';
@@ -733,6 +907,8 @@
             resultSection.classList.remove('visible');
             resultSection.classList.remove('ready');
             document.getElementById('shortPlanNotice').classList.remove('visible');
+            document.getElementById('paymentWarning').classList.remove('visible');
+            document.getElementById('nextSteps').classList.remove('visible');
             document.getElementById('resetBtn').style.display = 'none';
             
             // Reset displays
@@ -764,10 +940,11 @@
             stripeData.cost = parseFloat(costInput.value) || 0;
             stripeData.days = parseInt(planDaysInput.value) || 0;
             stripeData.endDate = endDateInput.value;
+            stripeData.endTimestamp = null; // Clear timestamp since manual date entry has no time
             
             // Update display
             document.getElementById('costDisplay').textContent = '$' + stripeData.cost.toFixed(2);
-            document.getElementById('daysDisplay').textContent = stripeData.days + ' days';
+            document.getElementById('daysDisplay').textContent = Math.round(stripeData.days) + ' days';
             document.getElementById('endDateDisplay').textContent = formatDate(stripeData.endDate);
             
             stripeEdit.classList.remove('visible');
@@ -797,6 +974,7 @@
             const cost = stripeData.cost;
             const planDays = stripeData.days;
             const endDateValue = stripeData.endDate;
+            const endTimestamp = stripeData.endTimestamp;
             
             if (cost <= 0 || planDays <= 0 || !endDateValue) {
                 resultSection.classList.remove('visible');
@@ -805,12 +983,12 @@
                 detailsDisplay.textContent = 'Missing subscription data';
                 currentRefund = 0;
                 document.getElementById('shortPlanNotice').classList.remove('visible');
+                document.getElementById('nextSteps').classList.remove('visible');
                 document.getElementById('resetBtn').style.display = 'none';
                 return;
             }
             
-            const endDate = parseLocalDate(endDateValue);
-            let daysBetween;
+            let timeDiffMs;
             
             if (inputMode === 'date') {
                 const joinDateValue = joinDateInput.value;
@@ -821,12 +999,29 @@
                     detailsDisplay.textContent = 'Enter org join date';
                     currentRefund = 0;
                     document.getElementById('shortPlanNotice').classList.remove('visible');
+                    document.getElementById('nextSteps').classList.remove('visible');
                     document.getElementById('resetBtn').style.display = 'none';
                     return;
                 }
-                const joinDate = parseLocalDate(joinDateValue);
-                const timeDiff = endDate - joinDate;
-                daysBetween = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                
+                // Check if selected date is today
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + 
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(today.getDate()).padStart(2, '0');
+                
+                let joinMs;
+                if (joinDateValue === todayStr) {
+                    // Use current moment (same as 0 days)
+                    joinMs = Date.now();
+                } else {
+                    // Use midnight for past dates
+                    joinMs = parseLocalDate(joinDateValue).getTime();
+                }
+                
+                // Use timestamp if available, otherwise fall back to date
+                const endMs = endTimestamp ? endTimestamp * 1000 : parseLocalDate(endDateValue).getTime();
+                timeDiffMs = endMs - joinMs;
             } else {
                 const daysSinceJoining = parseInt(daysSinceJoiningInput.value);
                 if (isNaN(daysSinceJoining) || daysSinceJoining < 0) {
@@ -836,17 +1031,21 @@
                     detailsDisplay.textContent = 'Enter days since joining';
                     currentRefund = 0;
                     document.getElementById('shortPlanNotice').classList.remove('visible');
+                    document.getElementById('nextSteps').classList.remove('visible');
                     document.getElementById('resetBtn').style.display = 'none';
                     return;
                 }
                 
-                const today = new Date();
-                const joinDate = new Date(today);
-                joinDate.setDate(today.getDate() - daysSinceJoining);
-                
-                const timeDiff = endDate - joinDate;
-                daysBetween = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                // Use current moment for precision
+                const now = Date.now();
+                const joinMs = now - (daysSinceJoining * 24 * 60 * 60 * 1000);
+                // Use timestamp if available, otherwise fall back to date
+                const endMs = endTimestamp ? endTimestamp * 1000 : parseLocalDate(endDateValue).getTime();
+                timeDiffMs = endMs - joinMs;
             }
+            
+            // Convert to fractional days for calculation
+            const daysBetween = timeDiffMs / (1000 * 60 * 60 * 24);
             
             if (daysBetween < 0) {
                 resultSection.classList.remove('visible');
@@ -855,6 +1054,7 @@
                 detailsDisplay.textContent = 'Join date must be before end date';
                 currentRefund = 0;
                 document.getElementById('shortPlanNotice').classList.remove('visible');
+                document.getElementById('nextSteps').classList.remove('visible');
                 document.getElementById('resetBtn').style.display = 'none';
                 return;
             }
@@ -867,7 +1067,7 @@
             resultSection.classList.add('visible');
             resultSection.classList.add('ready');
             resultDisplay.textContent = '$' + roundedRefund.toFixed(2);
-            detailsDisplay.textContent = `$${dailyRate.toFixed(4)}/day × ${daysBetween} days`;
+            detailsDisplay.textContent = `$${dailyRate.toFixed(4)}/day × ${daysBetween.toFixed(2)} days`;
             
             // Show reset button
             document.getElementById('resetBtn').style.display = 'block';
@@ -879,6 +1079,38 @@
             } else {
                 shortPlanNotice.classList.remove('visible');
             }
+            
+            // Show next steps with appropriate links
+            const nextSteps = document.getElementById('nextSteps');
+            const processRefundBtn = document.getElementById('processRefundBtn');
+            const stripeProfileBtn = document.getElementById('stripeProfileBtn');
+            
+            // Determine if this is a "today" refund
+            let isToday = false;
+            if (inputMode === 'days') {
+                const daysSinceJoining = parseInt(daysSinceJoiningInput.value);
+                isToday = (daysSinceJoining === 0);
+            } else {
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + 
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(today.getDate()).padStart(2, '0');
+                isToday = (joinDateInput.value === todayStr);
+            }
+            
+            // Set the Retool link based on today or past
+            if (isToday) {
+                processRefundBtn.href = `https://retool.internal.biorender.com/apps/a0dee8e0-fe2d-11ed-a716-fbb75fcb9d96/Apps/Subscriptions#searchKey=stripeSubscriptionId&searchValue=${stripeData.subscriptionId}`;
+                processRefundBtn.textContent = 'Process Refund in Retool (Subscriptions)';
+            } else {
+                processRefundBtn.href = `https://retool.internal.biorender.com/apps/0508bf00-dad2-11ed-bc61-db42846d9c1f/Apps/Invoices#stripeSubscriptionId=${stripeData.subscriptionId}`;
+                processRefundBtn.textContent = 'Process Refund in Retool (Invoices)';
+            }
+            
+            // Set Stripe profile link
+            stripeProfileBtn.href = `https://dashboard.stripe.com/acct_1B9ZrXLHw1e2oXNB/customers/${stripeData.customerId}`;
+            
+            nextSteps.classList.add('visible');
         }
         
         // ============================================
