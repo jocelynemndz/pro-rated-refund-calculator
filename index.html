@@ -451,6 +451,45 @@
             margin-bottom: 12px;
         }
         
+        .next-steps-instructions {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        
+        .instruction-step:not(:last-child) {
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .step-number {
+            background: #1072b9;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
         .next-steps-buttons {
             display: flex;
             flex-direction: column;
@@ -725,9 +764,33 @@
         <!-- Next Steps -->
         <div class="next-steps" id="nextSteps">
             <div class="next-steps-title">Next Steps</div>
+            
+            <div class="next-steps-instructions">
+                <div class="instruction-step">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Copy the refund amount above</span>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Go to Retool Subscriptions and cancel the subscription (select "no refund")</span>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Click "Open Stripe Invoices" button in Retool</span>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">4</span>
+                    <span class="step-text">Click the top invoice → scroll to Refund section → click Partial Refund</span>
+                </div>
+                <div class="instruction-step">
+                    <span class="step-number">5</span>
+                    <span class="step-text">Check the refund box and enter the amount on the plan line (do not touch sales tax)</span>
+                </div>
+            </div>
+            
             <div class="next-steps-buttons">
                 <a class="action-btn" id="processRefundBtn" href="#" target="_blank">
-                    Process Refund in Retool
+                    Open Retool Subscriptions
                 </a>
                 <a class="action-btn action-btn-secondary" id="stripeProfileBtn" href="#" target="_blank">
                     View Customer in Stripe
@@ -1085,27 +1148,8 @@
             const processRefundBtn = document.getElementById('processRefundBtn');
             const stripeProfileBtn = document.getElementById('stripeProfileBtn');
             
-            // Determine if this is a "today" refund
-            let isToday = false;
-            if (inputMode === 'days') {
-                const daysSinceJoining = parseInt(daysSinceJoiningInput.value);
-                isToday = (daysSinceJoining === 0);
-            } else {
-                const today = new Date();
-                const todayStr = today.getFullYear() + '-' + 
-                    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                    String(today.getDate()).padStart(2, '0');
-                isToday = (joinDateInput.value === todayStr);
-            }
-            
-            // Set the Retool link based on today or past
-            if (isToday) {
-                processRefundBtn.href = `https://retool.internal.biorender.com/apps/a0dee8e0-fe2d-11ed-a716-fbb75fcb9d96/Apps/Subscriptions#searchKey=stripeSubscriptionId&searchValue=${stripeData.subscriptionId}`;
-                processRefundBtn.textContent = 'Process Refund in Retool (Subscriptions)';
-            } else {
-                processRefundBtn.href = `https://retool.internal.biorender.com/apps/0508bf00-dad2-11ed-bc61-db42846d9c1f/Apps/Invoices#stripeSubscriptionId=${stripeData.subscriptionId}`;
-                processRefundBtn.textContent = 'Process Refund in Retool (Invoices)';
-            }
+            // Always link to Subscriptions - workflow goes through there first
+            processRefundBtn.href = `https://retool.internal.biorender.com/apps/a0dee8e0-fe2d-11ed-a716-fbb75fcb9d96/Apps/Subscriptions#searchKey=stripeSubscriptionId&searchValue=${stripeData.subscriptionId}`;
             
             // Set Stripe profile link
             stripeProfileBtn.href = `https://dashboard.stripe.com/acct_1B9ZrXLHw1e2oXNB/customers/${stripeData.customerId}`;
